@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TonapiClient.Tests/TonapiClient.Tests.csproj" />
+  <Project Path="TonapiClient/TonapiClient.csproj" />
+</Solution>
