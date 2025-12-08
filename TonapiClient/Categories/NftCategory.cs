@@ -26,6 +26,15 @@ public class NftCategory : CategoryBase
   }
 
   /// <summary>
+  /// Get multiple NFT collections information at once.
+  /// </summary>
+  public async Task<NftCollections> GetCollectionsBulkAsync(List<string> collectionAddresses, CancellationToken ct = default)
+  {
+    var request = new { account_ids = collectionAddresses };
+    return await PostAsync<object, NftCollections>("/v2/nfts/collections/_bulk", request, ct);
+  }
+
+  /// <summary>
   /// Get items from NFT collection.
   /// </summary>
   public async Task<NftItems> GetCollectionItemsAsync(

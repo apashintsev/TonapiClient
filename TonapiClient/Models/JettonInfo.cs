@@ -68,6 +68,12 @@ public class JettonInfo
     public Dictionary<string, string>? Metadata { get; set; }
 
     /// <summary>
+    /// Gets or sets the preview image URL.
+    /// </summary>
+    [JsonPropertyName("preview")]
+    public string? Preview { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether verification is available.
     /// </summary>
     [JsonPropertyName("verification")]

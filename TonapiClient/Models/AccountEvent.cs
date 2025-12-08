@@ -48,4 +48,16 @@ public class AccountEvent
     /// </summary>
     [JsonPropertyName("in_progress")]
     public bool InProgress { get; set; }
+
+    /// <summary>
+    /// Gets or sets the value flow (optional).
+    /// </summary>
+    [JsonPropertyName("value_flow")]
+    public List<ValueFlow>? ValueFlow { get; set; }
+
+    /// <summary>
+    /// Gets or sets the progress value (optional).
+    /// </summary>
+    [JsonPropertyName("progress")]
+    public int? Progress { get; set; }
 }

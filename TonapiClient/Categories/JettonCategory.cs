@@ -36,4 +36,12 @@ public class JettonCategory : CategoryBase
   {
     return await GetAsync<JettonHolders>($"/v2/jettons/{jettonAddress}/holders?limit={limit}&offset={offset}", ct);
   }
+
+  /// <summary>
+  /// Get event by event ID with jetton transfer information.
+  /// </summary>
+  public async Task<AccountEvent> GetEventJettonsAsync(string eventId, CancellationToken ct = default)
+  {
+    return await GetAsync<AccountEvent>($"/v2/events/{eventId}/jettons", ct);
+  }
 }

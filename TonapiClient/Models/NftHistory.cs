@@ -8,10 +8,10 @@ namespace TonapiClient.Models;
 public class NftHistory
 {
     /// <summary>
-    /// Gets or sets the list of NFT events.
+    /// Gets or sets the list of NFT operations.
     /// </summary>
-    [JsonPropertyName("events")]
-    public List<AccountEvent> Events { get; set; } = new();
+    [JsonPropertyName("operations")]
+    public List<NftOperation> Operations { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the next offset for pagination.

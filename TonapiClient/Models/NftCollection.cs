@@ -38,6 +38,12 @@ public class NftCollection
     public long NextItemIndex { get; set; }
 
     /// <summary>
+    /// Gets or sets the raw collection content.
+    /// </summary>
+    [JsonPropertyName("raw_collection_content")]
+    public string? RawCollectionContent { get; set; }
+
+    /// <summary>
     /// Gets or sets the metadata.
     /// </summary>
     [JsonPropertyName("metadata")]
