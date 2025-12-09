@@ -211,29 +211,6 @@ public partial class TonApiClient : IDisposable
 
     return null;
   }
-
-  /// <summary>
-  /// Get jetton wallet address for a user.
-  /// </summary>
-  public async Task<string?> GetJettonWalletAddressAsync(
-      string jettonMasterAddress,
-      string userAddress,
-      CancellationToken cancellationToken = default)
-  {
-    var args = new List<string> { userAddress };
-    var result = await Account.ExecuteGetMethodAsync(jettonMasterAddress, "get_wallet_address", args, cancellationToken);
-
-    if (result.Decoded.HasValue && result.Decoded.Value.ValueKind == JsonValueKind.Object)
-    {
-      if (result.Decoded.Value.TryGetProperty("jetton_wallet_address", out var addressElement))
-      {
-        return addressElement.GetString();
-      }
-    }
-
-    return null;
-  }
-
   #endregion
 
   #region Internal HTTP Methods

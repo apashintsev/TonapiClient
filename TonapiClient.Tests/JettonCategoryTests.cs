@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace TonapiClient.Tests;
 
 public class JettonCategoryTests : TestBase
@@ -470,6 +472,21 @@ public class JettonCategoryTests : TestBase
         // Verify holders_count
         Assert.NotNull(secondJetton.HoldersCount);
         Assert.Equal(663488, secondJetton.HoldersCount.Value);
+    }
+
+    [Fact]
+    public async Task GetJettonWalletTests()
+    {
+        // Arrange
+        var jettonMasterAddress = "0:92765cfb183a71317d47768f37d5d9c10baa5af82b60c2113bc8056ff90fb457";
+        var userAddress = "0:08c1cd46e7c5f238f5a47375b208c532da16f891beb94706916cf0010c87b2cd";
+
+        // Act
+        var jettonWallet = await Client.Jetton.GetJettonWalletAddressAsync(jettonMasterAddress, userAddress);
+
+        // Assert
+        Assert.NotNull(jettonWallet);
+        Assert.Equal("0:62fae4ca9c2b02c3bcfa84805f42b12043f0ba60d23af598275986ea5ae3bfd3", jettonWallet);
     }
 }
 

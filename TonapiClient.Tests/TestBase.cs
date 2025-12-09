@@ -11,6 +11,7 @@ public abstract class TestBase
     protected readonly IConfiguration Configuration;
     protected readonly TonApiClient Client;
     protected readonly TonApiClientOptions ClientOptions;
+    protected readonly string Mnemonic;
 
     protected TestBase()
     {
@@ -29,6 +30,8 @@ public abstract class TestBase
             ClientOptions.BaseUrl, 
             ClientOptions.ApiKey ?? string.Empty, 
             ClientOptions.TimeoutSeconds);
+
+        Mnemonic = Configuration["Mnemonic"] ?? string.Empty;
     }
 }
 
