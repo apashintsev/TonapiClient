@@ -1,6 +1,3 @@
-using Xunit;
-using TonapiClient.Models;
-
 namespace TonapiClient.Tests;
 
 public class JettonCategoryTests : TestBase
@@ -377,6 +374,102 @@ public class JettonCategoryTests : TestBase
         Assert.Equal(41673840000001, result.Lt);
         Assert.False(result.InProgress);
         Assert.Equal(1, result.Progress);
+    }
+
+    [Fact]
+    public async Task GetBulk_WithTwoJettonAddresses_ReturnsJettons()
+    {
+        // Arrange
+        var jettonAddresses = new List<string>
+        {
+            "0:92765cfb183a71317d47768f37d5d9c10baa5af82b60c2113bc8056ff90fb457",
+            "0:226e80c4bffa91adc11dad87706d52cd397047c128456ed2866d0549d8e2b163"
+        };
+
+        // Act
+        var result = await Client.Jetton.GetBulkAsync(jettonAddresses);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.JettonsList);
+        Assert.Equal(2, result.JettonsList.Count);
+        
+        // Verify first jetton (Digital Rouble)
+        var firstJetton = result.JettonsList[0];
+        Assert.NotNull(firstJetton);
+        
+        // Verify mintable and total_supply
+        Assert.False(firstJetton.Mintable);
+        Assert.Equal("10000000000000000000000", firstJetton.TotalSupply);
+        
+        // Verify metadata
+        Assert.NotNull(firstJetton.Metadata);
+        Assert.True(firstJetton.Metadata.ContainsKey("address"));
+        Assert.Equal("0:92765cfb183a71317d47768f37d5d9c10baa5af82b60c2113bc8056ff90fb457", firstJetton.Metadata["address"].ToLower());
+        
+        Assert.True(firstJetton.Metadata.ContainsKey("name"));
+        Assert.Equal("Digital Rouble", firstJetton.Metadata["name"]);
+        
+        Assert.True(firstJetton.Metadata.ContainsKey("symbol"));
+        Assert.Equal("dRUB", firstJetton.Metadata["symbol"]);
+        
+        Assert.True(firstJetton.Metadata.ContainsKey("decimals"));
+        Assert.Equal("18", firstJetton.Metadata["decimals"]);
+        
+        Assert.True(firstJetton.Metadata.ContainsKey("image"));
+        Assert.Contains("digital-rouble-ton.vercel.app/logo.png", firstJetton.Metadata["image"]);
+        
+        Assert.True(firstJetton.Metadata.ContainsKey("description"));
+        Assert.Equal("Official Digital Rouble on TON", firstJetton.Metadata["description"]);
+        
+        // Verify preview
+        Assert.NotNull(firstJetton.Preview);
+        Assert.NotEmpty(firstJetton.Preview);
+        Assert.Contains("cache.tonapi.io", firstJetton.Preview);
+        
+        // Verify verification
+        Assert.Equal("none", firstJetton.Verification);
+        
+        // Verify holders_count
+        Assert.NotNull(firstJetton.HoldersCount);
+        Assert.Equal(3, firstJetton.HoldersCount.Value);
+        
+        // Verify second jetton (Aiotx)
+        var secondJetton = result.JettonsList[1];
+        Assert.NotNull(secondJetton);
+        
+        // Verify mintable and total_supply
+        Assert.True(secondJetton.Mintable);
+        Assert.Equal("999999999999999999992990000000", secondJetton.TotalSupply);
+        
+        // Verify metadata
+        Assert.NotNull(secondJetton.Metadata);
+        Assert.True(secondJetton.Metadata.ContainsKey("address"));
+        Assert.Equal("0:226e80c4bffa91adc11dad87706d52cd397047c128456ed2866d0549d8e2b163", secondJetton.Metadata["address"].ToLower());
+        
+        Assert.True(secondJetton.Metadata.ContainsKey("name"));
+        Assert.Equal("Aiotx", secondJetton.Metadata["name"]);
+        
+        Assert.True(secondJetton.Metadata.ContainsKey("symbol"));
+        Assert.Equal("AIOTX", secondJetton.Metadata["symbol"]);
+        
+        Assert.True(secondJetton.Metadata.ContainsKey("decimals"));
+        Assert.Equal("9", secondJetton.Metadata["decimals"]);
+        
+        Assert.True(secondJetton.Metadata.ContainsKey("description"));
+        Assert.Equal("Testnet token to test", secondJetton.Metadata["description"]);
+        
+        // Verify preview
+        Assert.NotNull(secondJetton.Preview);
+        Assert.NotEmpty(secondJetton.Preview);
+        Assert.Contains("cache.tonapi.io", secondJetton.Preview);
+        
+        // Verify verification
+        Assert.Equal("none", secondJetton.Verification);
+        
+        // Verify holders_count
+        Assert.NotNull(secondJetton.HoldersCount);
+        Assert.Equal(663488, secondJetton.HoldersCount.Value);
     }
 }
 

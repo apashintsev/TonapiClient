@@ -44,4 +44,13 @@ public class JettonCategory : CategoryBase
   {
     return await GetAsync<AccountEvent>($"/v2/events/{eventId}/jettons", ct);
   }
+
+  /// <summary>
+  /// Get jetton metadata items by jetton master addresses.
+  /// </summary>
+  public async Task<Jettons> GetBulkAsync(List<string> jettonAddresses, CancellationToken ct = default)
+  {
+    var request = new JettonBulkRequest { AccountIds = jettonAddresses };
+    return await PostAsync<JettonBulkRequest, Jettons>("/v2/jettons/_bulk", request, ct);
+  }
 }
