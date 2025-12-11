@@ -217,7 +217,7 @@ public partial class TonApiClient : IDisposable
 
   internal async Task<T> GetAsync<T>(string url, CancellationToken cancellationToken)
   {
-    const int maxRetries = 3;
+    const int maxRetries = 5;
     int retryCount = 0;
 
     while (retryCount <= maxRetries)
@@ -312,7 +312,7 @@ public partial class TonApiClient : IDisposable
       TRequest request,
       CancellationToken cancellationToken)
   {
-    const int maxRetries = 3;
+    const int maxRetries = 5;
     int retryCount = 0;
 
     while (retryCount <= maxRetries)

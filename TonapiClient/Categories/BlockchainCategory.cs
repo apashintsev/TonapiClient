@@ -91,6 +91,52 @@ public class BlockchainCategory : CategoryBase
     }
 
     /// <summary>
+    /// Get raw blockchain account.
+    /// </summary>
+    public async Task<BlockchainRawAccount> GetAccountAsync(string accountId, CancellationToken ct = default)
+    {
+        return await GetAsync<BlockchainRawAccount>($"/v2/blockchain/accounts/{accountId}", ct);
+    }
+
+    /// <summary>
+    /// Get account transactions.
+    /// </summary>
+    public async Task<BlockchainAccountTransactions> GetAccountTransactionsAsync(string accountId, ulong? beforeLt = null, int? limit = null, string? sortOrder = null, CancellationToken ct = default)
+    {
+        var url = $"/v2/blockchain/accounts/{accountId}/transactions?";
+        if (beforeLt.HasValue) url += $"before_lt={beforeLt}&";
+        if (limit.HasValue) url += $"limit={limit}&";
+        if (!string.IsNullOrEmpty(sortOrder)) url += $"sort_order={sortOrder}&";
+        return await GetAsync<BlockchainAccountTransactions>(url.TrimEnd('&', '?'), ct);
+    }
+
+    /// <summary>
+    /// Execute get method.
+    /// </summary>
+    public async Task<MethodExecutionResult> ExecuteGetMethodAsync(string accountId, string methodName, List<string>? args = null, CancellationToken ct = default)
+    {
+        var url = $"/v2/blockchain/accounts/{accountId}/methods/{methodName}";
+        if (args?.Count > 0) url += "?args=" + string.Join("&args=", args);
+        return await GetAsync<MethodExecutionResult>(url, ct);
+    }
+
+    /// <summary>
+    /// Execute method (POST).
+    /// </summary>
+    public async Task<MethodExecutionResult> ExecuteMethodAsync(string accountId, string methodName, MethodExecutionRequest request, CancellationToken ct = default)
+    {
+        return await PostAsync<MethodExecutionRequest, MethodExecutionResult>($"/v2/blockchain/accounts/{accountId}/methods/{methodName}", request, ct);
+    }
+
+    /// <summary>
+    /// Inspect account.
+    /// </summary>
+    public async Task<BlockchainAccountInspectResult> InspectAccountAsync(string accountId, CancellationToken ct = default)
+    {
+        return await GetAsync<BlockchainAccountInspectResult>($"/v2/blockchain/accounts/{accountId}/inspect", ct);
+    }
+
+    /// <summary>
     /// Get the latest masterchain block.
     /// </summary>
     public async Task<MasterchainHead> GetMasterchainHeadAsync(CancellationToken ct = default)

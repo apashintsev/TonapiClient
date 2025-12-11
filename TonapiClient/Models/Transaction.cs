@@ -84,4 +84,88 @@ public class Transaction
     /// </summary>
     [JsonPropertyName("success")]
     public bool? Success { get; set; }
+
+    /// <summary>
+    /// Gets or sets the original status of the account.
+    /// </summary>
+    [JsonPropertyName("orig_status")]
+    public string? OrigStatus { get; set; }
+
+    /// <summary>
+    /// Gets or sets the end status of the account.
+    /// </summary>
+    [JsonPropertyName("end_status")]
+    public string? EndStatus { get; set; }
+
+    /// <summary>
+    /// Gets or sets the end balance of the account.
+    /// </summary>
+    [JsonPropertyName("end_balance")]
+    public ulong? EndBalance { get; set; }
+
+    /// <summary>
+    /// Gets or sets the transaction type.
+    /// </summary>
+    [JsonPropertyName("transaction_type")]
+    public string? TransactionType { get; set; }
+
+    /// <summary>
+    /// Gets or sets the old state update hash.
+    /// </summary>
+    [JsonPropertyName("state_update_old")]
+    public string? StateUpdateOld { get; set; }
+
+    /// <summary>
+    /// Gets or sets the new state update hash.
+    /// </summary>
+    [JsonPropertyName("state_update_new")]
+    public string? StateUpdateNew { get; set; }
+
+    /// <summary>
+    /// Gets or sets the previous transaction hash.
+    /// </summary>
+    [JsonPropertyName("prev_trans_hash")]
+    public string? PrevTransHash { get; set; }
+
+    /// <summary>
+    /// Gets or sets the previous transaction logical time.
+    /// </summary>
+    [JsonPropertyName("prev_trans_lt")]
+    public ulong? PrevTransLt { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the account was destroyed.
+    /// </summary>
+    [JsonPropertyName("destroyed")]
+    public bool? Destroyed { get; set; }
+
+    /// <summary>
+    /// Gets or sets the compute phase of the transaction.
+    /// </summary>
+    [JsonPropertyName("compute_phase")]
+    public ComputePhase? ComputePhase { get; set; }
+
+    /// <summary>
+    /// Gets or sets the action phase of the transaction.
+    /// </summary>
+    [JsonPropertyName("action_phase")]
+    public ActionPhase? ActionPhase { get; set; }
+
+    /// <summary>
+    /// Gets or sets the credit phase of the transaction.
+    /// </summary>
+    [JsonPropertyName("credit_phase")]
+    public CreditPhase? CreditPhase { get; set; }
+
+    /// <summary>
+    /// Gets or sets the storage phase of the transaction.
+    /// </summary>
+    [JsonPropertyName("storage_phase")]
+    public StoragePhase? StoragePhase { get; set; }
+
+    /// <summary>
+    /// Gets or sets the raw transaction data.
+    /// </summary>
+    [JsonPropertyName("raw")]
+    public string? Raw { get; set; }
 }

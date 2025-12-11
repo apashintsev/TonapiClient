@@ -8,14 +8,14 @@ namespace TonapiClient.Models;
 public class BlockchainShard
 {
     /// <summary>
+    /// Gets or sets the last known block ID.
+    /// </summary>
+    [JsonPropertyName("last_known_block_id")]
+    public string LastKnownBlockId { get; set; } = string.Empty;
+
+    /// <summary>
     /// Gets or sets the last known block.
     /// </summary>
     [JsonPropertyName("last_known_block")]
-    public ReducedBlock LastKnownBlock { get; set; } = new();
-
-    /// <summary>
-    /// Gets or sets the shard name.
-    /// </summary>
-    [JsonPropertyName("shard")]
-    public string Shard { get; set; } = string.Empty;
+    public BlockchainBlock LastKnownBlock { get; set; } = new();
 }

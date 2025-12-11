@@ -66,4 +66,63 @@ public class Message
     /// </summary>
     [JsonPropertyName("raw_body")]
     public string? RawBody { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether IHR (Instant Hypercube Routing) is disabled.
+    /// </summary>
+    [JsonPropertyName("ihr_disabled")]
+    public bool? IhrDisabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the message should bounce on failure.
+    /// </summary>
+    [JsonPropertyName("bounce")]
+    public bool? Bounce { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the message has bounced.
+    /// </summary>
+    [JsonPropertyName("bounced")]
+    public bool? Bounced { get; set; }
+
+    /// <summary>
+    /// Gets or sets the forward fee in nanotons.
+    /// </summary>
+    [JsonPropertyName("fwd_fee")]
+    public ulong? FwdFee { get; set; }
+
+    /// <summary>
+    /// Gets or sets the IHR fee in nanotons.
+    /// </summary>
+    [JsonPropertyName("ihr_fee")]
+    public ulong? IhrFee { get; set; }
+
+    /// <summary>
+    /// Gets or sets the import fee in nanotons.
+    /// </summary>
+    [JsonPropertyName("import_fee")]
+    public ulong? ImportFee { get; set; }
+
+    /// <summary>
+    /// Gets or sets the timestamp when the message was created.
+    /// </summary>
+    [JsonPropertyName("created_at")]
+    public ulong? CreatedAt { get; set; }
+
+    /// <summary>
+    /// Gets or sets the state initialization data.
+    /// </summary>
+    [JsonPropertyName("init")]
+    public StateInit? Init { get; set; }
+
+    /// <summary>
+    /// Gets or sets the decoded operation name.
+    /// </summary>
+    [JsonPropertyName("decoded_op_name")]
+    public string? DecodedOpName { get; set; }
+
+    /// <summary>
+    /// Gets the message type (alias for MsgType).
+    /// </summary>
+    public string? MessageType => MsgType;
 }
