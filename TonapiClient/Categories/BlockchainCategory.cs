@@ -1,3 +1,4 @@
+﻿using Microsoft.Extensions.Logging;
 using TonapiClient.Models;
 
 namespace TonapiClient.Categories;
@@ -7,7 +8,7 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class BlockchainCategory : CategoryBase
 {
-    internal BlockchainCategory(TonApiClient client) : base(client) { }
+    internal BlockchainCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger) { }
 
     /// <summary>
     /// Get blockchain block data by block ID.
@@ -72,6 +73,76 @@ public class BlockchainCategory : CategoryBase
     {
         var request = new SendBocRequest { Boc = boc };
         return await PostAsync<SendBocRequest, SendBocResponse>("/v2/blockchain/message", request, ct);
+    }
+
+    /// <summary>
+    /// Waits for a transaction to appear in the blockchain by polling account transactions.
+    /// Uses exponential backoff: 1s → 2s → 4s → 8s → ... up to maxPollingInterval.
+    /// </summary>
+    public async Task<Transaction?> WaitForTransactionAsync(
+        string accountId,
+        string expectedMessageHash,
+        int? expireTime = null,
+        int maxWaitTime = 120,
+        int initialPollingInterval = 1,
+        int maxPollingInterval = 8,
+        CancellationToken cancellationToken = default)
+    {
+        var waitTime = expireTime ?? maxWaitTime;
+        var deadline = DateTime.UtcNow.AddSeconds(waitTime);
+        var currentInterval = initialPollingInterval;
+
+        while (DateTime.UtcNow < deadline && !cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                var transactions = await _client.Account.GetTransactionsAsync(
+                    accountId,
+                    limit: 100,
+                    sortOrder: "desc",
+                    ct: cancellationToken);
+
+                // Search for transaction with matching incoming message hash
+                foreach (var tx in transactions.Transactions)
+                {
+                    if (tx.InMsg != null &&
+                        tx.InMsg.Hash.Equals(expectedMessageHash, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return tx;
+                    }
+                }
+
+                // Wait before next poll with exponential backoff
+                var delayMs = currentInterval * 1000;
+                var remainingTime = (deadline - DateTime.UtcNow).TotalMilliseconds;
+
+                if (delayMs > remainingTime)
+                {
+                    delayMs = (int)Math.Max(0, remainingTime);
+                }
+
+                if (delayMs > 0)
+                {
+                    await Task.Delay(delayMs, cancellationToken);
+                }
+
+                currentInterval = Math.Min(currentInterval * 2, maxPollingInterval);
+            }
+            catch (OperationCanceledException)
+            {
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error while polling for transaction {ExpectedHash} on account {AccountId}",
+                    expectedMessageHash, accountId);
+
+                await Task.Delay(currentInterval * 1000, cancellationToken);
+                currentInterval = Math.Min(currentInterval * 2, maxPollingInterval);
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

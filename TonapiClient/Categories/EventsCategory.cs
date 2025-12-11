@@ -8,11 +8,8 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class EventsCategory : CategoryBase
 {
-    private readonly ILogger _logger;
-
-    internal EventsCategory(TonApiClient client, ILogger logger) : base(client)
+    internal EventsCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger)
     {
-        _logger = logger;
     }
 
     /// <summary>

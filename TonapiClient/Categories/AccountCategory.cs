@@ -1,7 +1,5 @@
 using TonapiClient.Models;
-using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 
 namespace TonapiClient.Categories;
 
@@ -10,11 +8,8 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class AccountCategory : CategoryBase
 {
-    private readonly ILogger _logger;
-
-    internal AccountCategory(TonApiClient client, ILogger logger) : base(client)
+    internal AccountCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger)
     {
-        _logger = logger;
     }
 
     /// <summary>

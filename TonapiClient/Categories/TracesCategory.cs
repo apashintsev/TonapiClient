@@ -8,11 +8,8 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class TracesCategory : CategoryBase
 {
-    private readonly ILogger _logger;
-
-    internal TracesCategory(TonApiClient client, ILogger logger) : base(client)
+    internal TracesCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger)
     {
-        _logger = logger;
     }
 
     /// <summary>

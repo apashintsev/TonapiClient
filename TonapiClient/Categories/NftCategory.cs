@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using TonapiClient.Models;
 
 namespace TonapiClient.Categories;
@@ -7,7 +8,7 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class NftCategory : CategoryBase
 {
-    internal NftCategory(TonApiClient client) : base(client) { }
+    internal NftCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger) { }
 
     /// <summary>
     /// Get list of NFT collections.

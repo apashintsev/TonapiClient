@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace TonapiClient.Categories;
 
 /// <summary>
@@ -6,10 +8,12 @@ namespace TonapiClient.Categories;
 public abstract class CategoryBase
 {
     protected readonly TonApiClient _client;
+    protected readonly ILogger _logger;
 
-    internal CategoryBase(TonApiClient client)
+    internal CategoryBase(TonApiClient client, ILogger logger)
     {
         _client = client;
+        _logger = logger;
     }
 
     protected Task<T> GetAsync<T>(string url, CancellationToken ct = default)

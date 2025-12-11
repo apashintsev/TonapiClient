@@ -462,11 +462,11 @@ public class NftCategoryTests : TestBase
         
         // Verify all items have the same owner
         Assert.All(result.Items, nft => 
-            Assert.Equal("0:e76266cae608e71d0c96261ee33434c00a77a382312d69ff7b8bea292b3a7bd9", nft.Owner.Address.ToLower()));
+            Assert.Equal("0:e76266cae608e71d0c96261ee33434c00a77a382312d69ff7b8bea292b3a7bd9", nft!.Owner!.Address.ToLower()));
         
         // Verify all items belong to the same collection
         Assert.All(result.Items, nft => 
-            Assert.Equal(TonBullrunCollectionAddress.ToLower(), nft.Collection.Address.ToLower()));
+            Assert.Equal(TonBullrunCollectionAddress.ToLower(), nft!.Collection!.Address.ToLower()));
         
         // Verify all items are verified
         Assert.All(result.Items, nft => Assert.True(nft.Verified));
@@ -475,7 +475,7 @@ public class NftCategoryTests : TestBase
         Assert.All(result.Items, nft => Assert.Equal("none", nft.Trust));
         
         // Verify all items have 4 previews
-        Assert.All(result.Items, nft => Assert.Equal(4, nft.Previews.Count));
+        Assert.All(result.Items, nft => Assert.Equal(4, nft!.Previews!.Count));
     }
 
     [Fact]
