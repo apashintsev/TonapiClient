@@ -1,20 +1,39 @@
 # TonapiClient
 
-C# .NET клиент для работы с TON API (https://tonapi.io).
+[![NuGet](https://img.shields.io/nuget/v/TonapiClient.svg)](https://www.nuget.org/packages/TonapiClient/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![.NET](https://img.shields.io/badge/.NET-10.0-blue.svg)](https://dotnet.microsoft.com/)
 
-## Установка
+C# .NET client for [TON API](https://tonapi.io).
+
+**Supported platforms:** .NET 10.0+
+
+English version | [Русская версия](README_RU.md)
+
+## Installation
 
 ```bash
 dotnet add package TonapiClient
 ```
 
-## Настройка тестов
+## Features
 
-Для запуска тестов необходимо создать конфигурационный файл:
+✅ Full TON API v2 coverage
+✅ Type-safe models for all endpoints
+✅ Dependency Injection and HttpClientFactory support
+✅ Retry logic and error handling
+✅ CancellationToken support
+✅ Asynchronous transaction waiting with exponential backoff
+✅ Low-level access via LiteServer API
+✅ Testnet and mainnet support
 
-1. Скопируйте `TonapiClient.Tests/appsettings.example.json` в `TonapiClient.Tests/appsettings.json`
-2. Замените `YOUR_API_KEY_HERE` на ваш API ключ от [TON API](https://tonapi.io)
-3. Для тестов рекомендуется использовать testnet API: `https://testnet.tonapi.io`
+## Test Configuration
+
+To run tests, create a configuration file:
+
+1. Copy `src/TonapiClient.Tests/appsettings.example.json` to `src/TonapiClient.Tests/appsettings.json`
+2. Replace `YOUR_API_KEY_HERE` with your API key from [TON API](https://tonapi.io)
+3. For tests, it's recommended to use testnet API: `https://testnet.tonapi.io`
 
 ```json
 {
@@ -26,47 +45,50 @@ dotnet add package TonapiClient
 }
 ```
 
-Запуск тестов:
+Run tests:
+
 ```bash
 dotnet test
 ```
 
-**Примечание**: Файл `appsettings.json` включен в `.gitignore` и не должен коммититься в репозиторий.
+**Note**: The `appsettings.json` file is included in `.gitignore` and should not be committed to the repository.
 
-## Использование
+## Usage
 
-### Базовое использование
+### Basic Usage
 
 ```csharp
 using TonapiClient;
 
 var client = new TonApiClient("https://tonapi.io", "your-api-key");
 
-// Получить информацию о блокчейне
+// Get blockchain information
 var masterchainHead = await client.Blockchain.GetMasterchainHeadAsync();
 Console.WriteLine($"Last block: {masterchainHead.Last.Seqno}");
 
-// Получить информацию об аккаунте
+// Get account information
 var account = await client.Account.GetAsync("EQD...address");
 Console.WriteLine($"Balance: {account.Balance}");
 
-// Получить транзакции аккаунта
+// Get account transactions
 var transactions = await client.Account.GetTransactionsAsync("EQD...address", limit: 10);
 foreach (var tx in transactions.Transactions)
 {
     Console.WriteLine($"TX: {tx.Hash}");
 }
 
-// Получить информацию о Jetton
+// Get Jetton information
 var jetton = await client.Jetton.GetAsync("EQD...jetton-address");
 Console.WriteLine($"Jetton: {jetton.Metadata.Name}");
 
-// Получить NFT коллекцию
+// Get NFT collection
 var nft = await client.Nft.GetCollectionAsync("EQD...collection-address");
 Console.WriteLine($"NFT Collection: {nft.Metadata.Name}");
 ```
 
-### Dependency Injection
+### Dependency Injection (recommended approach)
+
+The client uses `HttpClientFactory` to manage HTTP connections and supports full DI integration:
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
@@ -74,10 +96,10 @@ using TonapiClient;
 
 var services = new ServiceCollection();
 
-// Из конфигурации
+// From configuration (appsettings.json)
 services.AddTonApiClient(configuration);
 
-// Или с явными параметрами
+// Or with explicit parameters
 services.AddTonApiClient(options =>
 {
     options.BaseUrl = "https://tonapi.io";
@@ -88,109 +110,197 @@ services.AddTonApiClient(options =>
 var serviceProvider = services.BuildServiceProvider();
 var client = serviceProvider.GetRequiredService<TonApiClient>();
 
-// Используйте client...
+// Use client...
 ```
 
-## API Категории
-
-Клиент организован по категориям для удобства использования:
-
-### `Blockchain` - Методы блокчейна
-- `GetBlockAsync()` - Получить данные блока
-- `GetMasterchainHeadAsync()` - Получить последний блок masterchain
-- `GetMasterchainBlocksAsync()` - Получить блоки между masterchain блоками
-- `GetTransactionAsync()` - Получить транзакцию по хешу
-- `SendBocAsync()` - Отправить BOC сообщение
-- `GetValidatorsAsync()` - Получить список валидаторов
-
-### `Account` - Методы аккаунтов
-- `GetAsync()` - Получить информацию об аккаунте
-- `GetTransactionsAsync()` - Получить транзакции аккаунта
-- `GetEventsAsync()` - Получить события аккаунта
-- `GetJettonsAsync()` - Получить Jetton балансы
-- `GetNftsAsync()` - Получить NFT аккаунта
-- `ExecuteGetMethodAsync()` - Выполнить get-метод смарт-контракта
-- `WaitForTransactionAsync()` - Ждать появления транзакции
-
-### `Jetton` - Методы Jetton токенов
-- `GetAsync()` - Получить информацию о Jetton
-- `GetAllAsync()` - Получить список всех Jettons
-- `GetHoldersAsync()` - Получить держателей Jetton
-
-### `Nft` - Методы NFT
-- `GetItemAsync()` - Получить NFT по адресу
-- `GetCollectionAsync()` - Получить коллекцию NFT
-- `GetCollectionsAsync()` - Получить список коллекций
-- `GetCollectionItemsAsync()` - Получить NFT из коллекции
-- `GetItemHistoryAsync()` - Получить историю NFT
-
-### `Dns` - Методы DNS
-- `GetRecordAsync()` - Получить DNS запись
-- `ResolveAsync()` - Разрешить доменное имя
-- `GetAuctionsAsync()` - Получить аукционы DNS
-- `GetBidsAsync()` - Получить ставки для домена
-
-### `Staking` - Методы стейкинга
-- `GetPoolsAsync()` - Получить список пулов стейкинга
-- `GetPoolAsync()` - Получить информацию о пуле
-- `GetAccountInfoAsync()` - Получить информацию о стейкинге аккаунта
-
-### `Rates` - Курсы валют
-- `GetAsync()` - Получить текущие курсы токенов
-- `GetChartAsync()` - Получить исторические данные курсов
-- `GetMarketsAsync()` - Получить курсы TON с разных бирж
-
-### `Traces` - Трейсы транзакций
-- `GetAsync()` - Получить трейс по ID
-- `WaitForAsync()` - Ждать завершения трейса
-- `EmulateAsync()` - Эмулировать сообщение и получить трейс
-
-### `Wallet` - Методы кошелька
-- `GetSeqnoAsync()` - Получить seqno кошелька
-- `EmulateAsync()` - Эмулировать отправку сообщения
-
-### `Gasless` - Gasless транзакции
-- `GetConfigAsync()` - Получить конфигурацию gasless
-- `EstimateAsync()` - Оценить комиссию gasless транзакции
-- `SendAsync()` - Отправить gasless транзакцию
-
-### `Events` - События
-- `GetAsync()` - Получить событие по ID
-- `WaitForAsync()` - Ждать завершения события
-
-### `LiteServer` - Методы Lite Server
-- `GetAccountStateAsync()` - Получить raw состояние аккаунта
-- `GetMasterchainInfoAsync()` - Получить информацию о masterchain
-- `GetTimeAsync()` - Получить время блокчейна
-- `GetBlockAsync()` - Получить raw блок
-- `GetTransactionsAsync()` - Получить raw транзакции
-
-### `Storage` - TON Storage
-- `GetProvidersAsync()` - Получить список провайдеров хранилища
-
-### `Multisig` - Multisig кошельки
-- `GetAccountAsync()` - Получить информацию о multisig аккаунте
-- `GetOrdersAsync()` - Получить ордера (предложения) multisig
-
-### `Emulation` - Эмуляция
-- `DecodeMessageAsync()` - Декодировать сообщение
-
-## Примеры
-
-### Отправка транзакции
+In ASP.NET Core, add to `Program.cs`:
 
 ```csharp
-// Эмулировать перед отправкой
+builder.Services.AddTonApiClient(builder.Configuration);
+```
+
+And in `appsettings.json`:
+
+```json
+{
+  "TonApiClient": {
+    "BaseUrl": "https://tonapi.io",
+    "ApiKey": "your-api-key",
+    "TimeoutSeconds": 30
+  }
+}
+```
+
+## Architecture
+
+The client is built on categories, each encapsulating logic for working with a specific area of TON API:
+
+- 🔗 **CategoryBase** - base class for all categories with common HTTP methods
+- 📦 **TonApiClient** - main facade providing access to all categories via properties
+- 🔌 **HttpClientFactory** - used for efficient HTTP connection management
+- ⚙️ **IOptions** - configuration via standard .NET mechanism
+
+All categories are accessible as client properties: `client.Blockchain`, `client.Account`, `client.Jetton`, etc.
+
+## API Categories
+
+The client is organized by categories for ease of use:
+
+### `Blockchain` - Blockchain Methods
+
+- `GetBlockAsync()` - Get block data
+- `GetReducedBlocksAsync()` - Get reduced block data within a time range
+- `GetMasterchainShardsAsync()` - Get masterchain block shards
+- `GetMasterchainHeadAsync()` - Get latest masterchain block
+- `GetMasterchainBlocksAsync()` - Get blocks between masterchain blocks
+- `GetMasterchainTransactionsAsync()` - Get transactions between masterchain blocks
+- `GetBlockTransactionsAsync()` - Get transactions from a specific block
+- `GetConfigAsync()` - Get blockchain config by seqno
+- `GetCurrentConfigAsync()` - Get current blockchain config
+- `GetRawConfigAsync()` - Get raw blockchain config
+- `GetTransactionAsync()` - Get transaction by hash
+- `GetTransactionByMessageHashAsync()` - Get transaction by message hash
+- `SendBocAsync()` - Send BOC message
+- `WaitForTransactionAsync()` - Wait for transaction with exponential backoff
+- `GetValidatorsAsync()` - Get validators list
+- `GetAccountAsync()` - Get raw account data
+- `GetAccountTransactionsAsync()` - Get account transactions
+- `ExecuteGetMethodAsync()` - Execute GET method on account
+- `ExecuteMethodAsync()` - Execute POST method on account
+- `InspectAccountAsync()` - Inspect account
+
+### `Account` - Account Methods
+
+- `GetAsync()` - Get account information
+- `GetTonBalanceAsync()` - Get account TON balance
+- `GetBulkAsync()` - Get information about multiple accounts
+- `GetTransactionsAsync()` - Get account transactions
+- `GetEventsAsync()` - Get account events
+- `GetEventByIdAsync()` - Get specific event by ID
+- `GetTracesAsync()` - Get account traces (lightweight identifiers)
+- `GetJettonsAsync()` - Get account Jetton balances
+- `GetJettonBalanceAsync()` - Get specific Jetton balance by master address
+- `GetJettonBalance()` - Get Jetton balance by name or address
+- `GetJettonsHistoryAsync()` - Get Jetton transfer history
+- `GetNftsAsync()` - Get account NFTs
+- `GetNftsHistoryAsync()` - Get NFT transfer history
+- `GetDnsBackresolveAsync()` - Get account domain names via DNS backresolve
+- `GetSubscriptionsAsync()` - Get account subscriptions
+- `GetPublicKeyAsync()` - Get account public key
+- `GetDiffAsync()` - Get balance change between two timestamps
+- `ExecuteGetMethodAsync()` - Execute smart contract GET method
+- `InspectAsync()` - Inspect account contract
+- `WaitForTransactionAsync()` - Wait for transaction with exponential backoff
+
+### `Jetton` - Jetton Token Methods
+
+- `GetAsync()` - Get Jetton information
+- `GetAllAsync()` - Get list of all Jettons
+- `GetBulkAsync()` - Get metadata for multiple Jettons by addresses
+- `GetHoldersAsync()` - Get Jetton holders
+- `GetEventJettonsAsync()` - Get event with Jetton transfer information
+- `GetJettonWalletAddressAsync()` - Get user's Jetton wallet address
+
+### `Nft` - NFT Methods
+
+- `GetItemAsync()` - Get NFT by address
+- `GetItemsBulkAsync()` - Get multiple NFTs by addresses
+- `GetItemHistoryAsync()` - Get NFT history
+- `GetCollectionAsync()` - Get NFT collection
+- `GetCollectionsAsync()` - Get list of collections
+- `GetCollectionsBulkAsync()` - Get multiple collections by addresses
+- `GetCollectionItemsAsync()` - Get NFTs from collection
+
+### `Dns` - DNS Methods
+
+- `GetRecordAsync()` - Get DNS record
+- `ResolveAsync()` - Resolve domain name
+- `GetAuctionsAsync()` - Get DNS auctions
+- `GetBidsAsync()` - Get bids for domain
+
+### `Staking` - Staking Methods
+
+- `GetPoolsAsync()` - Get list of staking pools
+- `GetPoolAsync()` - Get pool information
+- `GetAccountInfoAsync()` - Get account staking information
+
+### `Rates` - Currency Rates
+
+- `GetAsync()` - Get current token rates
+- `GetChartAsync()` - Get historical rate data
+- `GetMarketsAsync()` - Get TON rates from different exchanges
+
+### `Traces` - Transaction Traces
+
+- `GetAsync()` - Get trace by ID
+- `WaitForAsync()` - Wait for trace completion
+- `EmulateAsync()` - Emulate message and get trace
+
+### `Wallet` - Wallet Methods
+
+- `GetAsync()` - Get wallet information
+- `GetSeqnoAsync()` - Get wallet seqno
+- `GetWalletsByPublicKeyAsync()` - Get wallets by public key
+- `EmulateAsync()` - Emulate sending message
+
+### `Gasless` - Gasless Transactions
+
+- `GetConfigAsync()` - Get gasless configuration
+- `EstimateAsync()` - Estimate gasless transaction fee
+- `SendAsync()` - Send gasless transaction
+
+### `Events` - Events
+
+- `GetAsync()` - Get event by ID
+- `WaitForAsync()` - Wait for event completion
+
+### `LiteServer` - Lite Server Methods (low-level access)
+
+- `GetMasterchainInfoAsync()` - Get masterchain information
+- `GetMasterchainInfoExtAsync()` - Get extended masterchain information
+- `GetTimeAsync()` - Get blockchain time
+- `GetBlockAsync()` - Get raw block by ID
+- `GetBlockHeaderAsync()` - Get raw block header
+- `GetAccountStateAsync()` - Get raw account state
+- `GetShardInfoAsync()` - Get shard information
+- `GetAllShardsInfoAsync()` - Get information about all shards
+- `GetTransactionsAsync()` - Get raw account transactions
+- `GetListBlockTransactionsAsync()` - Get list of transactions from block
+- `SendMessageAsync()` - Send raw message to blockchain
+- `GetBlockProofAsync()` - Get raw block proof
+- `GetShardBlockProofAsync()` - Get raw shard block proof
+- `GetConfigAsync()` - Get raw configuration parameters
+- `GetOutMsgQueueSizesAsync()` - Get outgoing message queue sizes
+
+### `Storage` - TON Storage
+
+- `GetProvidersAsync()` - Get list of storage providers
+
+### `Multisig` - Multisig Wallets
+
+- `GetAccountAsync()` - Get multisig account information
+- `GetOrdersAsync()` - Get multisig orders (proposals)
+
+### `Emulation` - Emulation
+
+- `DecodeMessageAsync()` - Decode message
+
+## Examples
+
+### Sending Transaction
+
+```csharp
+// Emulate before sending
 var consequences = await client.Wallet.EmulateAsync(bocMessage);
 Console.WriteLine($"Estimated fee: {consequences.Event.Fee.Total}");
 
-// Отправить транзакцию
+// Send transaction
 var response = await client.Blockchain.SendBocAsync(bocMessage);
 Console.WriteLine($"Message hash: {response.Hash}");
 
-// Подождать транзакцию
+// Wait for transaction
 var transaction = await client.Account.WaitForTransactionAsync(
-    accountAddress, 
+    accountAddress,
     response.Hash,
     maxWaitTime: 60);
 
@@ -200,38 +310,38 @@ if (transaction != null)
 }
 ```
 
-### Работа с Jettons
+### Working with Jettons
 
 ```csharp
-// Получить адрес Jetton кошелька пользователя
+// Get user's Jetton wallet address
 var jettonWalletAddress = await client.GetJettonWalletAddressAsync(
     jettonMasterAddress,
     userAddress);
 
-// Получить информацию о Jetton
+// Get Jetton information
 var jetton = await client.Jetton.GetAsync(jettonMasterAddress);
 Console.WriteLine($"{jetton.Metadata.Name} ({jetton.Metadata.Symbol})");
 
-// Получить держателей
+// Get holders
 var holders = await client.Jetton.GetHoldersAsync(jettonMasterAddress, limit: 100);
 Console.WriteLine($"Total holders: {holders.Total}");
 ```
 
-### Работа с NFT
+### Working with NFT
 
 ```csharp
-// Получить NFT коллекцию
+// Get NFT collection
 var collection = await client.Nft.GetCollectionAsync(collectionAddress);
 Console.WriteLine($"Collection: {collection.Metadata.Name}");
 
-// Получить NFT из коллекции
+// Get NFTs from collection
 var items = await client.Nft.GetCollectionItemsAsync(collectionAddress, limit: 10);
 foreach (var item in items.NftItems)
 {
     Console.WriteLine($"NFT: {item.Metadata.Name}");
 }
 
-// Получить историю NFT
+// Get NFT history
 var history = await client.Nft.GetItemHistoryAsync(nftAddress);
 foreach (var event in history.Events)
 {
@@ -239,7 +349,110 @@ foreach (var event in history.Events)
 }
 ```
 
-## Лицензия
+### Executing Smart Contract Get-Methods
+
+```csharp
+// Inspect account to get list of available methods
+var inspection = await client.Blockchain.InspectAccountAsync(contractAddress);
+foreach (var method in inspection.Methods)
+{
+    Console.WriteLine($"Method: {method.Name}");
+}
+
+// Execute GET method (parameters in query string)
+var result = await client.Blockchain.ExecuteGetMethodAsync(
+    contractAddress,
+    "get_wallet_address",
+    new List<string> { "0:..." });
+
+// Execute POST method (parameters in request body)
+var postResult = await client.Blockchain.ExecuteMethodAsync(
+    contractAddress,
+    "get_wallet_address",
+    new List<MethodArg>
+    {
+        new() { Type = "slice", Value = "b5ee9c72..." }
+    });
+
+Console.WriteLine($"Success: {postResult.Success}");
+```
+
+### Working with LiteServer (low-level access)
+
+```csharp
+// Get masterchain information
+var info = await client.LiteServer.GetMasterchainInfoAsync();
+Console.WriteLine($"Last block seqno: {info.Last.Seqno}");
+
+// Get blockchain time
+var time = await client.LiteServer.GetTimeAsync();
+Console.WriteLine($"Blockchain time: {DateTimeOffset.FromUnixTimeSeconds(time.Time)}");
+
+// Get raw block
+var blockId = $"({info.Last.Workchain},{info.Last.Shard},{info.Last.Seqno},{info.Last.RootHash},{info.Last.FileHash})";
+var block = await client.LiteServer.GetBlockAsync(blockId);
+Console.WriteLine($"Block data length: {block.Data.Length}");
+
+// Get raw account state
+var accountState = await client.LiteServer.GetAccountStateAsync(
+    "0:...",
+    targetBlock: blockId);
+Console.WriteLine($"Account balance: {accountState.Balance}");
+
+// Get raw transactions
+var rawTxs = await client.LiteServer.GetTransactionsAsync(
+    "0:...",
+    count: 10);
+Console.WriteLine($"Transactions: {rawTxs.Transactions.Count}");
+```
+
+## Project Structure
+
+```
+TonapiClient/
+├── src/
+│   ├── TonapiClient/              # Main library
+│   │   ├── Categories/            # API categories
+│   │   │   ├── AccountCategory.cs
+│   │   │   ├── BlockchainCategory.cs
+│   │   │   ├── JettonCategory.cs
+│   │   │   ├── NftCategory.cs
+│   │   │   ├── LiteServerCategory.cs
+│   │   │   └── ...
+│   │   ├── Models/                # Data models
+│   │   ├── TonApiClient.cs        # Main client class
+│   │   ├── TonApiClientOptions.cs # Configuration options
+│   │   └── TonApiException.cs     # Exceptions
+│   └── TonapiClient.Tests/        # Integration tests
+│       ├── AccountCategoryTests.cs
+│       ├── BlockchainCategoryTests.cs
+│       ├── LiteServerCategoryTests.cs
+│       └── ...
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml              # CI/CD configuration
+└── README.md
+```
+
+## Development Requirements
+
+- .NET 10.0 SDK
+- API key from [TON API](https://tonapi.io) (for tests)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Useful Links
+
+- [TON API Documentation](https://docs.tonconsole.com/tonapi/api-v2)
+- [TON API Console](https://tonapi.io)
+- [TON Documentation](https://docs.ton.org)
+
+## Donations
+
+UQAN9eHzTT6ntU0LSIcqwLJz9GdzeUAOjeXr0x8_XWO0W9S5
+
+## License
 
 MIT
-
