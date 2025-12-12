@@ -1,4 +1,7 @@
 <Solution>
-  <Project Path="TonapiClient.Tests/TonapiClient.Tests.csproj" />
-  <Project Path="TonapiClient/TonapiClient.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/TonapiClient.Tests/TonapiClient.Tests.csproj" />
+  <Project Path="src/TonapiClient/TonapiClient.csproj" />
 </Solution>
