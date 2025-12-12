@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <PackageId>TonapiClient</PackageId>
+    <RepositoryType>git</RepositoryType>
     <Title>Tonapi client</Title>
     <Description>This NuGet package provides a C# .NET unofficial client for working with the TON API (https://tonapi.io).</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
