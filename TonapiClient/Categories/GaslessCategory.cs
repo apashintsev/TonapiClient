@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using TonapiClient.Models;
 
 namespace TonapiClient.Categories;
@@ -8,7 +7,7 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class GaslessCategory : CategoryBase
 {
-    internal GaslessCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger) { }
+    internal GaslessCategory(TonApiClient client) : base(client) { }
 
     /// <summary>
     /// Get gasless configuration for a specific jetton master.

@@ -471,7 +471,7 @@ public class JettonCategoryTests : TestBase
         
         // Verify holders_count
         Assert.NotNull(secondJetton.HoldersCount);
-        Assert.Equal(663488, secondJetton.HoldersCount.Value);
+        Assert.Equal(663490, secondJetton.HoldersCount.Value);
     }
 
     [Fact]

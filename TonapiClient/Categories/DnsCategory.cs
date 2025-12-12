@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using TonapiClient.Models;
 
 namespace TonapiClient.Categories;
@@ -8,7 +7,7 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class DnsCategory : CategoryBase
 {
-    internal DnsCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger) { }
+    internal DnsCategory(TonApiClient client) : base(client) { }
 
     /// <summary>
     /// Get DNS record by domain name.

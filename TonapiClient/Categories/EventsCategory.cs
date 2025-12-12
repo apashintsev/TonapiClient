@@ -1,5 +1,4 @@
 using TonapiClient.Models;
-using Microsoft.Extensions.Logging;
 
 namespace TonapiClient.Categories;
 
@@ -8,7 +7,7 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class EventsCategory : CategoryBase
 {
-    internal EventsCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger)
+    internal EventsCategory(TonApiClient client) : base(client)
     {
     }
 

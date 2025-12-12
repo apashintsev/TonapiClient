@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using TonapiClient.Models;
 
 namespace TonapiClient.Categories;
@@ -8,14 +7,17 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class LiteServerCategory : CategoryBase
 {
-    internal LiteServerCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger) { }
+    internal LiteServerCategory(TonApiClient client) : base(client) { }
 
     /// <summary>
     /// Get raw account state from lite server.
     /// </summary>
-    public async Task<LiteServerAccountState> GetAccountStateAsync(string accountId, CancellationToken ct = default)
+    public async Task<LiteServerAccountState> GetAccountStateAsync(string accountId, string? targetBlock = null, CancellationToken ct = default)
     {
-        return await GetAsync<LiteServerAccountState>($"/v2/liteserver/get_account_state/{accountId}", ct);
+        var url = $"/v2/liteserver/get_account_state/{accountId}";
+        if (!string.IsNullOrEmpty(targetBlock))
+            url += $"?target_block={Uri.EscapeDataString(targetBlock)}";
+        return await GetAsync<LiteServerAccountState>(url, ct);
     }
 
     /// <summary>
@@ -48,7 +50,7 @@ public class LiteServerCategory : CategoryBase
     /// </summary>
     public async Task<RawBlockchainBlock> GetBlockAsync(string blockId, CancellationToken ct = default)
     {
-        return await GetAsync<RawBlockchainBlock>($"/v2/liteserver/get_block?block_id={blockId}", ct);
+        return await GetAsync<RawBlockchainBlock>($"/v2/liteserver/get_block/{Uri.EscapeDataString(blockId)}", ct);
     }
 
     /// <summary>
@@ -78,7 +80,7 @@ public class LiteServerCategory : CategoryBase
         string? hash = null,
         CancellationToken ct = default)
     {
-        var url = $"/v2/liteserver/get_transactions?account={accountId}&count={count}";
+        var url = $"/v2/liteserver/get_transactions/{accountId}?count={count}";
         if (!string.IsNullOrEmpty(lt))
             url += $"&lt={lt}";
 
@@ -93,7 +95,21 @@ public class LiteServerCategory : CategoryBase
     /// </summary>
     public async Task<RawShardInfo> GetAllShardsInfoAsync(string blockId, CancellationToken ct = default)
     {
-        return await GetAsync<RawShardInfo>($"/v2/liteserver/get_all_shards_info?block_id={blockId}", ct);
+        return await GetAsync<RawShardInfo>($"/v2/liteserver/get_all_shards_info/{Uri.EscapeDataString(blockId)}", ct);
+    }
+
+    /// <summary>
+    /// Get shard info from lite server.
+    /// </summary>
+    public async Task<LiteServerShardInfo> GetShardInfoAsync(
+        string blockId,
+        int workchain,
+        long shard,
+        bool exact = false,
+        CancellationToken ct = default)
+    {
+        var url = $"/v2/liteserver/get_shard_info/{Uri.EscapeDataString(blockId)}?workchain={workchain}&shard={shard}&exact={exact.ToString().ToLower()}";
+        return await GetAsync<LiteServerShardInfo>(url, ct);
     }
 
     /// <summary>

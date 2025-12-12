@@ -1,5 +1,4 @@
 using TonapiClient.Models;
-using Microsoft.Extensions.Logging;
 
 namespace TonapiClient.Categories;
 
@@ -8,7 +7,7 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class AccountCategory : CategoryBase
 {
-    internal AccountCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger)
+    internal AccountCategory(TonApiClient client) : base(client)
     {
     }
 
@@ -335,11 +334,8 @@ public class AccountCategory : CategoryBase
             {
                 return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogWarning(ex, "Error while polling for transaction {ExpectedHash} on account {AccountId}",
-                    expectedMessageHash, accountId);
-
                 await Task.Delay(currentInterval * 1000, ct);
                 currentInterval = Math.Min(currentInterval * 2, maxPollingInterval);
             }

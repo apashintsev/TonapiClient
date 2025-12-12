@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using TonapiClient.Models;
 
@@ -9,7 +8,7 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class JettonCategory : CategoryBase
 {
-    internal JettonCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger) { }
+    internal JettonCategory(TonApiClient client) : base(client) { }
 
     /// <summary>
     /// Get list of all jettons in the system.

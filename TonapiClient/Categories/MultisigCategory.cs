@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using TonapiClient.Models;
 
 namespace TonapiClient.Categories;
@@ -8,7 +7,7 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class MultisigCategory : CategoryBase
 {
-    internal MultisigCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger) { }
+    internal MultisigCategory(TonApiClient client) : base(client) { }
 
     /// <summary>
     /// Get multisig account information.

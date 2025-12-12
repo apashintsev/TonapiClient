@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using TonapiClient.Models;
+﻿using TonapiClient.Models;
 
 namespace TonapiClient.Categories;
 
@@ -8,7 +7,7 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class BlockchainCategory : CategoryBase
 {
-    internal BlockchainCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger) { }
+    internal BlockchainCategory(TonApiClient client) : base(client) { }
 
     /// <summary>
     /// Get blockchain block data by block ID.
@@ -132,11 +131,8 @@ public class BlockchainCategory : CategoryBase
             {
                 return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogWarning(ex, "Error while polling for transaction {ExpectedHash} on account {AccountId}",
-                    expectedMessageHash, accountId);
-
                 await Task.Delay(currentInterval * 1000, cancellationToken);
                 currentInterval = Math.Min(currentInterval * 2, maxPollingInterval);
             }

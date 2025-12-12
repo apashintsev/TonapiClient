@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using TonapiClient.Models;
 
 namespace TonapiClient.Categories;
@@ -8,7 +7,7 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class RatesCategory : CategoryBase
 {
-    internal RatesCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger) { }
+    internal RatesCategory(TonApiClient client) : base(client) { }
 
     /// <summary>
     /// Get the token price in the chosen currency for display only. Don’t use this for financial transactions.

@@ -1,5 +1,4 @@
 using TonapiClient.Models;
-using Microsoft.Extensions.Logging;
 
 namespace TonapiClient.Categories;
 
@@ -8,7 +7,7 @@ namespace TonapiClient.Categories;
 /// </summary>
 public class TracesCategory : CategoryBase
 {
-    internal TracesCategory(TonApiClient client, ILogger<TonApiClient> logger) : base(client, logger)
+    internal TracesCategory(TonApiClient client) : base(client)
     {
     }
 
@@ -57,9 +56,8 @@ public class TracesCategory : CategoryBase
             {
                 return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogWarning(ex, "Error while polling for trace {TraceId}", traceId);
                 await Task.Delay(currentInterval * 1000, ct);
                 currentInterval = Math.Min(currentInterval * 2, maxPollingInterval);
             }

@@ -11,7 +11,7 @@ public class RawBlockchainBlock
     /// Gets or sets the block ID.
     /// </summary>
     [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
+    public RawBlockId Id { get; set; }
 
     /// <summary>
     /// Gets or sets the raw block data in base64.

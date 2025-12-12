@@ -1,7 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TonapiClient.Models;
 using TonapiClient.Categories;
@@ -12,10 +11,9 @@ namespace TonapiClient;
 /// Client for interacting with the TON API (https://tonapi.io).
 /// Provides access to blockchain data, accounts, transactions, NFTs, Jettons, and more.
 /// </summary>
-public partial class TonApiClient : IDisposable
+public partial class TonApiClient
 {
     private readonly HttpClient _httpClient;
-    private readonly ILogger<TonApiClient> _logger;
     private readonly TonApiClientOptions? _options;
     private readonly JsonSerializerOptions _jsonOptions;
 
@@ -45,8 +43,7 @@ public partial class TonApiClient : IDisposable
     public TonApiClient(string baseUrl, string apiKey, int timeoutSeconds = 30)
         : this(
             new HttpClient { BaseAddress = new Uri(baseUrl), Timeout = TimeSpan.FromSeconds(timeoutSeconds) },
-            Options.Create(new TonApiClientOptions { BaseUrl = baseUrl, ApiKey = apiKey, TimeoutSeconds = timeoutSeconds }),
-            Microsoft.Extensions.Logging.Abstractions.NullLogger<TonApiClient>.Instance)
+            Options.Create(new TonApiClientOptions { BaseUrl = baseUrl, ApiKey = apiKey, TimeoutSeconds = timeoutSeconds }))
     { }
 
     /// <summary>
@@ -57,11 +54,9 @@ public partial class TonApiClient : IDisposable
     /// <param name="logger">The logger.</param>
     public TonApiClient(
           HttpClient httpClient,
-          IOptions<TonApiClientOptions> options,
-          ILogger<TonApiClient> logger)
+          IOptions<TonApiClientOptions> options)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
 
         _httpClient.BaseAddress = new Uri(_options.BaseUrl);
@@ -75,25 +70,25 @@ public partial class TonApiClient : IDisposable
 
         _jsonOptions = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true,
+            PropertyNameCaseInsensitive = false,
         };
 
         // Initialize categories
-        Blockchain = new BlockchainCategory(this, _logger);
-        Account = new AccountCategory(this, _logger);
-        Jetton = new JettonCategory(this, _logger);
-        Nft = new NftCategory(this, _logger);
-        Dns = new DnsCategory(this, _logger);
-        Staking = new StakingCategory(this, _logger);
-        Rates = new RatesCategory(this, _logger);
-        Traces = new TracesCategory(this, _logger);
-        Wallet = new WalletCategory(this, _logger);
-        Gasless = new GaslessCategory(this, _logger);
-        Events = new EventsCategory(this, _logger);
-        LiteServer = new LiteServerCategory(this, _logger);
-        Storage = new StorageCategory(this, _logger);
-        Multisig = new MultisigCategory(this, _logger);
-        Emulation = new EmulationCategory(this, _logger);
+        Blockchain = new BlockchainCategory(this);
+        Account = new AccountCategory(this);
+        Jetton = new JettonCategory(this);
+        Nft = new NftCategory(this);
+        Dns = new DnsCategory(this);
+        Staking = new StakingCategory(this);
+        Rates = new RatesCategory(this);
+        Traces = new TracesCategory(this);
+        Wallet = new WalletCategory(this);
+        Gasless = new GaslessCategory(this);
+        Events = new EventsCategory(this);
+        LiteServer = new LiteServerCategory(this);
+        Storage = new StorageCategory(this);
+        Multisig = new MultisigCategory(this);
+        Emulation = new EmulationCategory(this);
     }
 
     #region Utilities Methods
@@ -134,63 +129,41 @@ public partial class TonApiClient : IDisposable
         {
             try
             {
-                _logger.LogDebug(
-                    "Sending HTTP request to {Url} (attempt {Attempt}/{MaxAttempts})",
-                    url, retryCount + 1, maxRetries + 1);
-
                 var response = await send(cancellationToken);
-                var content = await response.Content.ReadAsStringAsync(cancellationToken);
 
                 if (!response.IsSuccessStatusCode)
                 {
+                    // 404
                     if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                     {
-                        _logger.LogInformation(
-                            "Entity not found (404) for {Url}. Response: {Response}",
-                            url, content);
-
                         return default!;
                     }
 
+                    // 429
                     if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
                     {
                         var delay = GetDelay(response, retryCount);
                         if (retryCount < maxRetries)
                         {
-                            _logger.LogWarning(
-                                "Rate limit (429) for {Url}. Waiting {Delay} before retry {RetryCount}/{MaxRetries}",
-                                url, delay, retryCount + 1, maxRetries);
-
                             await Task.Delay(delay, cancellationToken);
                             retryCount++;
                             continue;
                         }
-
-                        _logger.LogError(
-                            "Rate limit (429) for {Url} - max retries ({MaxRetries}) reached",
-                            url, maxRetries);
-                    }
-                    else
-                    {
-                        _logger.LogError(
-                            "API request failed with status {StatusCode} for {Url}. Response: {Response}",
-                            response.StatusCode, url, content);
                     }
 
-                    var error = JsonSerializer.Deserialize<ApiError>(content, _jsonOptions);
+                    await using var errorStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                    var error = await JsonSerializer.DeserializeAsync<ApiError>(errorStream, _jsonOptions, cancellationToken);
+
                     throw new TonApiException(
                         error?.Error ?? "Unknown error",
                         (int)response.StatusCode,
                         error?.ErrorCode);
                 }
 
-                var result = JsonSerializer.Deserialize<TResponse>(content, _jsonOptions);
-                if (result == null)
-                {
-                    throw new TonApiException("Failed to deserialize response", 0, null);
-                }
+                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                var result = await JsonSerializer.DeserializeAsync<TResponse>(stream, _jsonOptions, cancellationToken);
 
-                return result;
+                return result == null ? throw new TonApiException("Failed to deserialize response", 0, null) : result;
             }
             catch (TonApiException)
             {
@@ -198,18 +171,17 @@ public partial class TonApiClient : IDisposable
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, "HTTP request failed for {Url}", url);
                 throw new TonApiException("HTTP request failed", 0, null, ex);
             }
             catch (TaskCanceledException ex)
             {
-                _logger.LogError(ex, "Request timeout for {Url}", url);
                 throw new TonApiException("Request timeout", 0, null, ex);
             }
         }
 
         throw new TonApiException("Unexpected error in retry loop", 0, null);
     }
+
 
     internal Task<T> GetAsync<T>(string url, CancellationToken ct) =>
         SendWithRetryAsync<T>(c => _httpClient.GetAsync(url, c), url, ct);
