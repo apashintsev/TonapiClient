@@ -161,6 +161,13 @@ public partial class TonApiClient
                 }
 
                 await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+                
+                // Handle empty response (e.g., 200 OK with no body)
+                if (stream.Length == 0 || typeof(TResponse) == typeof(object))
+                {
+                    return default!;
+                }
+                
                 var result = await JsonSerializer.DeserializeAsync<TResponse>(stream, _jsonOptions, cancellationToken);
 
                 return result == null ? throw new TonApiException("Failed to deserialize response", 0, null) : result;

@@ -2,9 +2,11 @@ using System.Numerics;
 using Ton.Core.Addresses;
 using Ton.Core.Boc;
 using Ton.Core.Types;
+using Ton.Crypto.Mnemonic;
 using TonapiClient.Models;
 using TonapiClient.Tests.V5R1;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace TonapiClient.Tests;
@@ -22,45 +24,45 @@ public class TracesCategoryTests : TestBase
 
         // Assert
         Assert.NotNull(result);
-        
+
         // Verify root transaction
         Assert.NotNull(result.Transaction);
         Assert.Equal(traceId, result.Transaction.Hash.ToLower());
         Assert.Equal(42198170000001ul, result.Transaction.Lt);
-        
+
         // Verify root transaction account
         Assert.NotNull(result.Transaction.Account);
         Assert.Equal("0:7d9bd933a00838d9e7d0d3c94779689e6cc3812519a6ed523a84d45b4d896bec", result.Transaction.Account.Address.ToLower());
         Assert.False(result.Transaction.Account.IsScam);
         Assert.True(result.Transaction.Account.IsWallet);
-        
+
         // Verify root transaction success
         Assert.True(result.Transaction.Success.HasValue);
         Assert.True(result.Transaction.Success.Value);
         Assert.Equal(1765205194ul, result.Transaction.Utime);
         Assert.Equal(3246798ul, result.Transaction.TotalFees);
-        
+
         // Verify root transaction in_msg
         Assert.NotNull(result.Transaction.InMsg);
         Assert.Equal("ext_in_msg", result.Transaction.InMsg.MsgType);
         Assert.Equal("0x7369676e", result.Transaction.InMsg.OpCode);
-        
+
         // Verify out_msgs
         Assert.NotNull(result.Transaction.OutMsgs);
-        
+
         // Verify block
         Assert.NotNull(result.Transaction.Block);
         Assert.NotEmpty(result.Transaction.Block);
-        
+
         // Verify interfaces
         Assert.NotNull(result.Interfaces);
         Assert.Single(result.Interfaces);
         Assert.Equal("wallet_v5r1", result.Interfaces[0]);
-        
+
         // Verify children exist
         Assert.NotNull(result.Children);
         Assert.NotEmpty(result.Children);
-        
+
         // Verify first child transaction
         var firstChild = result.Children[0];
         Assert.NotNull(firstChild);
@@ -68,34 +70,34 @@ public class TracesCategoryTests : TestBase
         Assert.Equal("c692cb7425fa7774a83979ca496db96c04960e1e13759ee0819b51b61566901d", firstChild.Transaction.Hash.ToLower());
         Assert.True(firstChild.Transaction.Success.HasValue);
         Assert.True(firstChild.Transaction.Success.Value);
-        
+
         // Verify first child has its own children (nested structure)
         Assert.NotNull(firstChild.Children);
         Assert.NotEmpty(firstChild.Children);
-        
+
         // Verify second level child
         var secondLevelChild = firstChild.Children[0];
         Assert.NotNull(secondLevelChild);
         Assert.NotNull(secondLevelChild.Transaction);
         Assert.Equal("072c3a3914dffaaba49dbd82093a299ca24c1c7e05fe34eafc5c3f9b4a7afccc", secondLevelChild.Transaction.Hash.ToLower());
-        
+
         // Verify emulated flag
         Assert.False(result.Emulated);
-        
+
         // Verify aborted flag
         Assert.False(result.Transaction.Aborted);
-        
+
         // Test helper methods - they should execute without exceptions
         var isFinalized = result.IsFinalized(); // Can be true or false depending on trace state
         Assert.False(result.HasUnsuccessfulTransactions()); // All transactions should be successful
-        
+
         var totalFees = result.GetTotalFees();
         Assert.True(totalFees > 0, $"Total fees should be positive, got {totalFees}");
-        
+
         var sender = result.GetSender();
         Assert.NotNull(sender);
         Assert.Equal("0:7d9bd933a00838d9e7d0d3c94779689e6cc3812519a6ed523a84d45b4d896bec", sender.ToLower());
-        
+
         var transferType = result.GetTransferType();
         Assert.NotEqual(TransferType.Unknown, transferType);
     }
@@ -111,7 +113,7 @@ public class TracesCategoryTests : TestBase
 
         // Assert
         Assert.NotNull(result);
-        Assert.False(result.HasUnsuccessfulTransactions(), 
+        Assert.False(result.HasUnsuccessfulTransactions(),
             "Expected trace to have no unsuccessful transactions");
     }
 
@@ -126,7 +128,7 @@ public class TracesCategoryTests : TestBase
 
         // Assert
         Assert.NotNull(result);
-        Assert.True(result.HasUnsuccessfulTransactions(), 
+        Assert.True(result.HasUnsuccessfulTransactions(),
             "Expected trace to have at least one unsuccessful transaction");
     }
 
@@ -191,7 +193,7 @@ public class TracesCategoryTests : TestBase
     [Fact]
     public async Task EmulateTransferWithDummyKeyTests()
     {
-        var amount =  0.05m;
+        var amount = 0.05m;
         var fromAddress = "0:166ee3201c967f2dbd85ed916da9eeb4b2cfea0afa7f7b4f0302597461f7eb5e";
         var toAddress = "0:08c1cd46e7c5f238f5a47375b208c532da16f891beb94706916cf0010c87b2cd";
 
@@ -345,6 +347,67 @@ public class TracesCategoryTests : TestBase
         var recipient = trace.GetRecipient();
         Assert.NotNull(sender);
         Assert.NotNull(recipient);
+    }
+
+    [Fact]
+    public async Task TransferTests()
+    {
+        string toAddress = "0QAIwc1G58XyOPWkc3WyCMUy2hb4kb65RwaRbPABDIeyzYKY";
+        decimal amount = 0.01m;
+        var keys = Ton.Crypto.Mnemonic.Mnemonic.ToWalletKey(Mnemonic.Split(" "));
+
+        var wallet = WalletV5R1.Create(0, keys.PublicKey, false);
+        var seqnoResult = await Client.Wallet.GetSeqnoAsync(wallet.Address.ToString());
+        var seqno = seqnoResult.SeqnoValue;
+
+        var destAddress = Address.Parse(toAddress);
+
+        // this is internal messgae
+        var message = new MessageRelaxed(
+            new CommonMessageInfoRelaxed.Internal(
+                true, false, false,
+                null, destAddress,
+                new CurrencyCollection(new BigInteger(amount * 1_000_000_000)),
+                0, 0, 0, 0),
+            Builder.BeginCell().StoreUint(0x00000000, 32).StoreStringTail("Test transfer").EndCell());
+
+        Cell unsignedTransfer = WalletV5R1Utils.CreateUnsignedTransfer(wallet.WalletId, seqno,
+            [message],
+            SendMode.SendPayFwdFeesSeparately | SendMode.SendIgnoreErrors);
+
+        Cell transfer = WalletV5R1Utils.SignAndPack(unsignedTransfer, keys.SecretKey);
+
+        // Create external message
+        // Build external message (the receiver of this message is user`s wallet)
+        CommonMessageInfo.ExternalIn externalMsgInfo = new(
+            null,
+            wallet.Address,
+            BigInteger.Zero
+        );
+        Ton.Core.Types.Message externalMsg = new(externalMsgInfo, transfer, seqno > 0 ? null : wallet.Init);
+        var normalizedHash = WalletV5R1Utils.NormalizeHash(externalMsg).ToHex();
+
+        // Serialize and send
+        Cell messageCell = Builder.BeginCell()
+          .StoreMessage(externalMsg)
+          .EndCell();
+        byte[] boc = messageCell.ToBoc();
+        var bocAsString = Convert.ToBase64String(boc);
+        // await Client.LiteServer.SendMessageAsync(Convert.ToBase64String(boc));
+        await Client.Blockchain.SendBocAsync(bocAsString);
+        try
+        {
+            await Client.Blockchain.SendBocAsync(bocAsString);
+        }
+        catch (Exception ex)
+        {
+            Assert.Contains("duplicate message", ex.Message);
+        }
+
+        var tx = await Client.Blockchain.WaitForTransactionAsync(wallet.Address.ToString(), normalizedHash);
+
+        Assert.True(tx != null, "Transaction should be found");
+        Assert.True(tx.Success == true, "Transaction should be successful");
     }
 }
 

@@ -290,23 +290,44 @@ builder.Services.AddTonApiClient(builder.Configuration);
 ### Отправка транзакции
 
 ```csharp
-// Эмулировать перед отправкой
-var consequences = await client.Wallet.EmulateAsync(bocMessage);
+// Build and sign transaction (using TonSdk.NET)
+var keys = Mnemonic.ToWalletKey(mnemonic.Split(" "));
+var wallet = WalletV5R1.Create(0, keys.PublicKey, false);
+var seqno = (await client.Wallet.GetSeqnoAsync(wallet.Address.ToString())).SeqnoValue;
+
+var message = new MessageRelaxed(...); // Create your message
+Cell unsignedTransfer = WalletV5R1Utils.CreateUnsignedTransfer(
+    wallet.WalletId, seqno, [message], SendMode.SendPayFwdFeesSeparately);
+Cell transfer = WalletV5R1Utils.SignAndPack(unsignedTransfer, keys.SecretKey);
+
+// Create external message
+var externalMsg = new Message(
+    new CommonMessageInfo.ExternalIn(null, wallet.Address, BigInteger.Zero),
+    transfer,
+    seqno > 0 ? null : wallet.Init);
+
+// Calculate message hash locally
+var messageHash = WalletV5R1Utils.NormalizeHash(externalMsg).ToHex();
+
+// Serialize to BOC
+var boc = Convert.ToBase64String(Builder.BeginCell().StoreMessage(externalMsg).EndCell().ToBoc());
+
+// Emulate before sending (optional)
+var consequences = await client.Wallet.EmulateAsync(boc);
 Console.WriteLine($"Estimated fee: {consequences.Event.Fee.Total}");
 
-// Отправить транзакцию
-var response = await client.Blockchain.SendBocAsync(bocMessage);
-Console.WriteLine($"Message hash: {response.Hash}");
+// Send transaction
+await client.Blockchain.SendBocAsync(boc: boc);
 
-// Подождать транзакцию
-var transaction = await client.Account.WaitForTransactionAsync(
-    accountAddress,
-    response.Hash,
+// Wait for transaction
+var tx = await client.Blockchain.WaitForTransactionAsync(
+    wallet.Address.ToString(),
+    messageHash,
     maxWaitTime: 60);
 
-if (transaction != null)
+if (tx != null && tx.Success)
 {
-    Console.WriteLine($"Transaction confirmed: {transaction.Hash}");
+    Console.WriteLine($"Transaction confirmed: {tx.Hash}");
 }
 ```
 

@@ -68,10 +68,19 @@ public class BlockchainCategory : CategoryBase
     /// <summary>
     /// Send BOC (Bag of Cells) message to the blockchain.
     /// </summary>
-    public async Task<SendBocResponse> SendBocAsync(string boc, CancellationToken ct = default)
+    public async Task SendBocAsync(
+        string? boc = null, 
+        List<string>? batch = null, 
+        Dictionary<string, string>? meta = null,
+        CancellationToken ct = default)
     {
-        var request = new SendBocRequest { Boc = boc };
-        return await PostAsync<SendBocRequest, SendBocResponse>("/v2/blockchain/message", request, ct);
+        var request = new SendBlockchainMessageRequest
+        { 
+            Boc = boc, 
+            Batch = batch, 
+            Meta = meta 
+        };
+        await PostAsync<SendBlockchainMessageRequest, object>("/v2/blockchain/message", request, ct);
     }
 
     /// <summary>
