@@ -13,7 +13,7 @@
     <PackageTags>TON,Tonapi</PackageTags>
     <RepositoryUrl>https://github.com/apashintsev/TonapiClient</RepositoryUrl>
     <PackageProjectUrl>https://github.com/apashintsev/TonapiClient</PackageProjectUrl>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
