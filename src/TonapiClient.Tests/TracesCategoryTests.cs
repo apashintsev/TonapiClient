@@ -393,6 +393,10 @@ public class TracesCategoryTests : TestBase
           .EndCell();
         byte[] boc = messageCell.ToBoc();
         var bocAsString = Convert.ToBase64String(boc);
+        var consequences = await Client.Traces.EmulateAsync(bocAsString);
+        Assert.True(!consequences.HasUnsuccessfulTransactions(), "Emulated transaction should be successful");
+        Assert.True(consequences.GetTotalFees() > 0, "Emulated transaction should have fees");
+
         // await Client.LiteServer.SendMessageAsync(Convert.ToBase64String(boc));
         await Client.Blockchain.SendBocAsync(bocAsString);
         try

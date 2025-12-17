@@ -313,8 +313,8 @@ var messageHash = WalletV5R1Utils.NormalizeHash(externalMsg).ToHex();
 var boc = Convert.ToBase64String(Builder.BeginCell().StoreMessage(externalMsg).EndCell().ToBoc());
 
 // Emulate before sending (optional)
-var consequences = await client.Wallet.EmulateAsync(boc);
-Console.WriteLine($"Estimated fee: {consequences.Event.Fee.Total}");
+var consequences = await Client.Traces.EmulateAsync(bocAsString);
+Console.WriteLine($"Estimated fee: {consequences.GetTotalFees()}");
 
 // Send transaction
 await client.Blockchain.SendBocAsync(boc: boc);
